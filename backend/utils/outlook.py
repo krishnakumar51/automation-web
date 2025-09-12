@@ -1801,7 +1801,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         # Hold for exactly 1 minute (60 seconds)
         start_time = time.time()
         last_status_time = 0
-        hold_duration = 60  # 60 seconds = 1 minute
+        hold_duration = 45  # 45 seconds 
         
         print("\n🔄 1-MINUTE HOLD ACTIVE")
         print("   - Mouse button is pressed and will stay pressed for 1 minute")
@@ -1847,7 +1847,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                         if new_url != current_url and "challenge" not in new_url.lower():
                             print(f"✅ SUCCESS: Page navigated after {int(elapsed)}s!")
                             print(f"   New URL: {new_url}")
-                            print("💡 Will continue holding until 1 minute is complete...")
+                            print("💡 Will continue holding until 45 seconds is complete...")
                             current_url = new_url  # Update for future checks
                             
                     except Exception as e:
@@ -1907,15 +1907,28 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         print(f"First name: {first_name}")
         print(f"Last name: {last_name}")
         
-        # Keep browser open for inspection
-        input("\nPress Enter to close the browser...")
+        # Return success for backend flow (no interactive blocking)
+        return True
         
     except Exception as e:
         print(f"Error during automation: {e}")
-        input("Press Enter to close the browser...")
+        # Propagate error to backend so it can mark account as failed
+        raise
     
     finally:
+        # Ensure all Playwright resources are cleaned up
         try:
-            browser.close()
+            if 'page' in locals() and page:
+                page.close()
+        except:
+            pass
+        try:
+            if 'context' in locals() and context:
+                context.close()
+        except:
+            pass
+        try:
+            if 'browser' in locals() and browser:
+                browser.close()
         except:
             pass

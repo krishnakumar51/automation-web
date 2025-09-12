@@ -135,7 +135,7 @@ def generate_demo_data():
     birth_day = str(random.randint(1, 28))  # Using 28 to avoid month-specific day issues
     birth_year = str(random.randint(1980, 2000))
     
-    password = "Test@12345"  # Hardcoded as requested
+    password = "wrfyh@6498$"  # Hardcoded as requested
     
     return {
         "first_name": first_name,
@@ -226,6 +226,14 @@ def create_account_worker(account_data: dict, account_id: int):
         add_log(error_msg, account_id)
         add_log(detailed_error, account_id)
         update_account_status(account_id, "failed", f"{error_msg}\n{detailed_error}")
+    
+    finally:
+        # Cooldown to ensure the next account starts after a brief pause and with a fresh browser
+        try:
+            add_log("Cooling down for 3 seconds before next account...", account_id)
+        except Exception:
+            pass
+        time.sleep(3)
 
 @app.get("/")
 async def root():
