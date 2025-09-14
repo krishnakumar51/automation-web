@@ -65,12 +65,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # Get parameters from command line or use defaults
-    username = args.username if args.username else "p8288fvgh"
+    username = args.username if args.username else "kr85ish52"
     password = args.password if args.password else "Pranavsurya@123"
     birth_month = getattr(args, 'birth_month') if getattr(args, 'birth_month') else "January"
     birth_day = getattr(args, 'birth_day') if getattr(args, 'birth_day') else "15" 
-    birth_year = getattr(args, 'birth_year') if getattr(args, 'birth_year') else "1995"
-    first_name = getattr(args, 'first_name') if getattr(args, 'first_name') else "Pranav"
+    birth_year = getattr(args, 'birth_year') if getattr(args, 'birth_year') else "2000"
+    first_name = getattr(args, 'first_name') if getattr(args, 'first_name') else "Krishna"
     last_name = getattr(args, 'last_name') if getattr(args, 'last_name') else "Sharma"
     
     print(f"Starting account creation with username: {username}")

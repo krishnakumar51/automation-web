@@ -3,9 +3,8 @@ import time
 import os
 import argparse
 import pyautogui
-# from playwright_stealth import stealth_sync  
 import threading
-from .gemini_challenge_solver import solve_microsoft_challenge_with_gemini
+
 
 
 def create_outlook_account(playwright: pw.Playwright, username: str, password: str, birth_month: str, birth_day: str, birth_year: str, first_name: str, last_name: str) -> None:
@@ -308,7 +307,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     page.wait_for_timeout(500)
                     
                     # Type the username
-                    email_input.type(username, delay=50)
+                    email_input.type(username, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify it was filled
@@ -541,7 +540,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     page.wait_for_timeout(500)
                     
                     # Type the password
-                    password_input.type(password, delay=50)
+                    password_input.type(password, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify it was filled (check length, not actual password for security)
@@ -1045,7 +1044,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                 page.wait_for_timeout(500)
                 
                 # Type the year
-                year_input.type(birth_year, delay=100)
+                year_input.type(birth_year, delay=150)
                 page.wait_for_timeout(1000)
                 
                 # Verify year was filled
@@ -1287,7 +1286,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     # Clear and fill
                     first_name_input.fill("")
                     page.wait_for_timeout(500)
-                    first_name_input.type(first_name, delay=50)
+                    first_name_input.type(first_name, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify
@@ -1386,7 +1385,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     # Clear and fill
                     last_name_input.fill("")
                     page.wait_for_timeout(500)
-                    last_name_input.type(last_name, delay=50)
+                    last_name_input.type(last_name, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify
@@ -1541,16 +1540,6 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
 #########################################################################################################################################################################
 #########################################################################################################################################################################
 #########################################################################################################################################################################
-        # print(f"\n🤖 Waiting for human challenge...")
-        # page.wait_for_timeout(2000)
-
-        # gemini_api_key = "AIzaSyCfeRygxfudrK0SPkQPNztsvoCRo28KHmM"
-        # success = solve_microsoft_challenge_with_gemini(page, gemini_api_key)   
-
-        # if success:
-        #     print("🎉 Challenge completed successfully!")
-        # else:
-        #     print("❌ Challenge handling failed")
 
         
         
@@ -1802,12 +1791,9 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         # Hold for exactly 1 minute (60 seconds)
         start_time = time.time()
         last_status_time = 0
-        hold_duration = 60  # 60 seconds = 1 minute
+        hold_duration = 20  # 20 seconds 
         
-        print("\n🔄 1-MINUTE HOLD ACTIVE")
-        print("   - Mouse button is pressed and will stay pressed for 1 minute")
-        print("   - The script will automatically release after 60 seconds")
-        print("   - The script will monitor for completion\n")
+        print("\n🔄 20-MINUTE HOLD ACTIVE")
             
         try:
             while True:  # Continue for exactly 60 seconds
@@ -1816,7 +1802,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                 
                 # Check if 1 minute has passed
                 if elapsed >= hold_duration:
-                    print(f"⏰ 1 minute completed! Releasing mouse button...")
+                    print(f"⏰ 20 minute completed! Releasing mouse button...")
                     break
                 
                 # Print status every 10 seconds
@@ -1848,7 +1834,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                         if new_url != current_url and "challenge" not in new_url.lower():
                             print(f"✅ SUCCESS: Page navigated after {int(elapsed)}s!")
                             print(f"   New URL: {new_url}")
-                            print("💡 Will continue holding until 1 minute is complete...")
+                            print("💡 Will continue holding until 45 seconds is complete...")
                             current_url = new_url  # Update for future checks
                             
                     except Exception as e:
@@ -1900,7 +1886,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         page.wait_for_timeout(5000)
         
         # Final wait
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(5000)
         print("\nProcess completed!")
         print(f"Username '{username}' should create email: {username}@outlook.com")
         print(f"Password has been set (length: {len(password)} characters)")
@@ -1908,15 +1894,28 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         print(f"First name: {first_name}")
         print(f"Last name: {last_name}")
         
-        # Keep browser open for inspection
-        input("\nPress Enter to close the browser...")
+        # Return success for backend flow (no interactive blocking)
+        return True
         
     except Exception as e:
         print(f"Error during automation: {e}")
-        input("Press Enter to close the browser...")
+        # Propagate error to backend so it can mark account as failed
+        raise
     
     finally:
+        # Ensure all Playwright resources are cleaned up
         try:
-            browser.close()
+            if 'page' in locals() and page:
+                page.close()
+        except:
+            pass
+        try:
+            if 'context' in locals() and context:
+                context.close()
+        except:
+            pass
+        try:
+            if 'browser' in locals() and browser:
+                browser.close()
         except:
             pass

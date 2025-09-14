@@ -307,7 +307,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     page.wait_for_timeout(500)
                     
                     # Type the username
-                    email_input.type(username, delay=50)
+                    email_input.type(username, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify it was filled
@@ -540,7 +540,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     page.wait_for_timeout(500)
                     
                     # Type the password
-                    password_input.type(password, delay=50)
+                    password_input.type(password, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify it was filled (check length, not actual password for security)
@@ -1044,7 +1044,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                 page.wait_for_timeout(500)
                 
                 # Type the year
-                year_input.type(birth_year, delay=100)
+                year_input.type(birth_year, delay=150)
                 page.wait_for_timeout(1000)
                 
                 # Verify year was filled
@@ -1286,7 +1286,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     # Clear and fill
                     first_name_input.fill("")
                     page.wait_for_timeout(500)
-                    first_name_input.type(first_name, delay=50)
+                    first_name_input.type(first_name, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify
@@ -1385,7 +1385,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                     # Clear and fill
                     last_name_input.fill("")
                     page.wait_for_timeout(500)
-                    last_name_input.type(last_name, delay=50)
+                    last_name_input.type(last_name, delay=150)
                     page.wait_for_timeout(1000)
                     
                     # Verify
@@ -1540,16 +1540,6 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
 #########################################################################################################################################################################
 #########################################################################################################################################################################
 #########################################################################################################################################################################
-        # print(f"\n🤖 Waiting for human challenge...")
-        # page.wait_for_timeout(2000)
-
-        # gemini_api_key = "AIzaSyCfeRygxfudrK0SPkQPNztsvoCRo28KHmM"
-        # success = solve_microsoft_challenge_with_gemini(page, gemini_api_key)   
-
-        # if success:
-        #     print("🎉 Challenge completed successfully!")
-        # else:
-        #     print("❌ Challenge handling failed")
 
         
         
@@ -1801,12 +1791,9 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         # Hold for exactly 1 minute (60 seconds)
         start_time = time.time()
         last_status_time = 0
-        hold_duration = 45  # 45 seconds 
+        hold_duration = 15  # 20 seconds 
         
-        print("\n🔄 1-MINUTE HOLD ACTIVE")
-        print("   - Mouse button is pressed and will stay pressed for 1 minute")
-        print("   - The script will automatically release after 60 seconds")
-        print("   - The script will monitor for completion\n")
+        print("\n🔄 20-MINUTE HOLD ACTIVE")
             
         try:
             while True:  # Continue for exactly 60 seconds
@@ -1815,7 +1802,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
                 
                 # Check if 1 minute has passed
                 if elapsed >= hold_duration:
-                    print(f"⏰ 1 minute completed! Releasing mouse button...")
+                    print(f"⏰ 20 minute completed! Releasing mouse button...")
                     break
                 
                 # Print status every 10 seconds
@@ -1878,6 +1865,40 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
             except Exception as e:
                 print(f"⚠️  Error releasing mouse button: {e}")
 
+        # ==== AFTER LONG PRESS VERIFICATION, CONTINUE HERE ====
+
+        try:
+            print("⏭️ Handling 'Stay signed in?'...")
+            no_selectors = [
+                "button:has-text('No')",
+                "input[value='No']",
+                "button[aria-label='No']"
+            ]
+            no_clicked = False
+            for selector in no_selectors:
+                try:
+                    no_btn = page.wait_for_selector(selector, timeout=8000, state="visible")
+                    if no_btn:
+                        no_btn.scroll_into_view_if_needed()
+                        no_btn.click()
+                        no_clicked = True
+                        print("✅ Clicked 'No' on 'Stay signed in?'")
+                        break
+                except Exception as e:
+                    print(f"No selector {selector} failed: {e}")
+
+            if not no_clicked:
+                print("⚠️ Couldn't find 'No' button. Trying text content fallback...")
+                buttons = page.query_selector_all("button")
+                for btn in buttons:
+                    if btn.is_visible() and btn.inner_text().strip().lower() == "no":
+                        btn.click()
+                        print("✅ Clicked 'No' (fallback)")
+                        break
+
+        except Exception as e:
+            print(f"Error in post-verification flow: {e}")    
+
 
 ################################################################################################################################                
 ################################################################################################################################                
@@ -1899,7 +1920,7 @@ def create_outlook_account(playwright: pw.Playwright, username: str, password: s
         page.wait_for_timeout(5000)
         
         # Final wait
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(5000)
         print("\nProcess completed!")
         print(f"Username '{username}' should create email: {username}@outlook.com")
         print(f"Password has been set (length: {len(password)} characters)")
