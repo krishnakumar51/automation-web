@@ -56,7 +56,7 @@ def handle_stay_signed_in(page) -> bool:
             except:
                 continue
 
-    page.wait_for_timeout(8000)
+    page.wait_for_timeout(15000)
     return no_clicked
 
 # def navigate_to_outlook_mail(page) -> bool:

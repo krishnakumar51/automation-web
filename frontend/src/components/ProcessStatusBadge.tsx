@@ -1,18 +1,25 @@
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { CheckCircle, Clock, Loader2, XCircle } from "lucide-react";
 
-interface StatusBadgeProps {
-  status: 'pending' | 'success' | 'failed';
+interface ProcessStatusBadgeProps {
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
 }
 
-const StatusBadge = ({ status }: StatusBadgeProps) => {
+const ProcessStatusBadge = ({ status }: ProcessStatusBadgeProps) => {
   const getStatusConfig = () => {
     switch (status) {
-      case 'success':
+      case 'completed':
         return {
           icon: CheckCircle,
-          text: 'Success',
+          text: 'Completed',
           className: 'bg-success/10 text-success border-success/20 hover:bg-success/20',
+        };
+      case 'in_progress':
+        return {
+          icon: Loader2,
+          text: 'Processing',
+          className: 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20',
+          animate: true,
         };
       case 'pending':
         return {
@@ -35,14 +42,14 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
     }
   };
 
-  const { icon: Icon, text, className } = getStatusConfig();
+  const { icon: Icon, text, className, animate } = getStatusConfig();
 
   return (
     <Badge variant="outline" className={className}>
-      <Icon className="w-3 h-3 mr-1" />
+      <Icon className={`w-3 h-3 mr-1 ${animate ? 'animate-spin' : ''}`} />
       {text}
     </Badge>
   );
 };
 
-export default StatusBadge;
+export default ProcessStatusBadge;

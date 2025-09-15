@@ -66,7 +66,7 @@ const LogsViewer = ({ logs, onClearLogs }: LogsViewerProps) => {
             <div className="text-center py-8">
               <Terminal className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
               <p className="text-sm text-muted-foreground">
-                No logs yet. Start creating accounts to see live updates.
+                No logs yet. Start processing CURPs to see live updates.
               </p>
             </div>
           ) : (
@@ -79,7 +79,7 @@ const LogsViewer = ({ logs, onClearLogs }: LogsViewerProps) => {
                   {formatTimestamp(log.timestamp)}
                 </span>
                 <span className="text-xs font-mono text-muted-foreground">
-                  #{log.account_id}
+                  {log.process_id ? `${log.process_id.substring(0, 8)}...` : 'SYS'}
                 </span>
                 <span className={`text-xs flex-1 ${getLogColor(log.message)}`}>
                   {log.message}

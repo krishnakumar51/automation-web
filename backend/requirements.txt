@@ -4,3 +4,21 @@ playwright
 pyautogui
 pydantic
 requests
+
+
+# Requirements for Mobile Automation Scripts
+# Basic Python packages (no external dependencies for ADB method)
+
+# For Appium-based automation (optional)
+appium-python-client>=3.1.0
+selenium>=4.15.0
+
+# For enhanced automation features (optional)
+requests>=2.31.0
+pillow>=10.1.0
+
+# Development and debugging tools (optional)
+pytest>=7.4.0
+
+# Note: ADB method only requires Python 3.7+ and ADB installed
+# No additional Python packages needed for basic ADB automation
