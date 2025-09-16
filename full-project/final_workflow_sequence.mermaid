@@ -1,0 +1,133 @@
+
+sequenceDiagram
+    participant IL as 👤 IL
+    participant MA as 🧠 Mother Agent
+    participant REV as 👀 Reviewer
+    participant DBA as 🔍 DB Agent
+    participant EA as 📨 Email Agent
+    participant IMSSA as 🏥 IMSS Agent
+    participant UIMCP as MCP UI Server
+    participant MCPMAIL as MCP Email Server
+    participant DB as 🗄️ Database
+    participant PHONE as 📱 Android Phone
+    participant OUTLOOK as 📧 Outlook App
+
+    %% Workflow Initiation
+    IL->>MA: Start automation task
+    MA->>MA: Initialize workflow state
+    MA->>AISA: Report task start (A2A)
+    REV->>MA: Pre-workflow validation
+
+    %% Step 1: Database CURP Retrieval
+    MA->>DBA: Get CURP for new request (mobile:true)
+    DBA->>DB: db_poll_requests()
+    DB-->>DBA: New request found
+    DBA->>DB: db_get_curp_id(criteria)
+    DB-->>DBA: CURP ID: "ABCD123456HDFGHI01"
+    DBA-->>MA: CURP retrieved
+    REV->>MA: Post-step: CURP valid?
+    MA->>MA: Checkpoint: CURP_RETRIEVED
+
+    %% Step 2: Outlook Account Creation
+    MA->>EA: Create Outlook account (mobile:true)
+    REV->>EA: Pre-step: Device ready?
+    EA->>UIMCP: ui_wait_element("CREATE NEW ACCOUNT", mobile:true)
+    UIMCP->>PHONE: Find element via Appium
+    UIMCP->>OUTLOOK: Launch Outlook mobile app
+    EA->>UIMCP: ui_click_element("CREATE NEW ACCOUNT", mobile:true)
+    EA->>UIMCP: ui_type_text(email_field, "user123", mobile:true)
+    EA->>UIMCP: ui_type_text(password_field, "Pass123!", mobile:true)
+    EA->>UIMCP: ui_select_dropdown(day_field, "15", mobile:true)
+    EA->>UIMCP: ui_select_dropdown(month_field, "March", mobile:true)
+    EA->>UIMCP: ui_type_text(year_field, "1995", clear_strategy:"backspace", mobile:true)
+    EA->>UIMCP: ui_type_text(first_name, "John", mobile:true)
+    EA->>UIMCP: ui_type_text(last_name, "Doe", mobile:true)
+
+    %% CAPTCHA Handling
+    EA->>UIMCP: ui_long_press_verify(captcha_btn, duration:15000, mobile:true)
+    UIMCP->>PHONE: Execute mobile:longClickGesture
+    UIMCP-->>EA: CAPTCHA verification completed
+    EA->>UIMCP: ui_wait_loading(condition:"progress_gone", mobile:true)
+    EA->>UIMCP: ui_click_element("MAYBE LATER", mobile:true)
+    EA->>UIMCP: ui_verify_text_present("Search", mobile:true)
+
+    EA-->>MA: Outlook account created: user123@outlook.com
+    REV->>MA: Post-step: Account accessible?
+    MA->>MA: Checkpoint: OUTLOOK_CREATED
+
+    %% Step 3: IMSS App Form Submission
+    MA->>IMSSA: Submit IMSS form (mobile:true)
+    REV->>IMSSA: Pre-step: IMSS app accessible?
+    IMSSA->>UIMCP: ui_click_element("com.imss.app:id/new_request", mobile:true)
+    IMSSA->>UIMCP: ui_wait_element("com.imss.app:id/email_field", mobile:true)
+    IMSSA->>UIMCP: ui_type_text("com.imss.app:id/email_field", "user123@outlook.com", mobile:true)
+    IMSSA->>UIMCP: ui_type_text("com.imss.app:id/curp_field", "ABCD123456HDFGHI01", mobile:true)
+    IMSSA->>UIMCP: ui_click_element("com.imss.app:id/submit_btn", mobile:true)
+    IMSSA->>UIMCP: ui_verify_text_present("Submitted successfully", mobile:true)
+
+    IMSSA-->>MA: IMSS form submitted successfully
+    REV->>MA: Post-step: Submission confirmed?
+    MA->>MA: Checkpoint: IMSS_SUBMITTED
+
+    %% Step 4: Outlook Inbox Monitoring
+    MA->>EA: Monitor Outlook inbox for response
+    EA->>MCPMAIL: outlook_poll_inbox(account:"user123@outlook.com", criteria:"subject contains 'IMSS'")
+
+    loop Every 30 seconds for 10 minutes
+        MCPMAIL->>OUTLOOK: Check Outlook inbox via API/UI
+        OUTLOOK-->>MCPMAIL: Inbox status checked
+        MCPMAIL-->>EA: Checking inbox for IMSS response...
+        Note over EA: Wait for IMSS response email in Outlook
+    end
+
+    MCPMAIL->>OUTLOOK: New email detected with IMSS subject
+    OUTLOOK-->>MCPMAIL: Email content retrieved
+    EA->>MCPMAIL: outlook_parse_content(email_id)
+    MCPMAIL-->>EA: Parsed content with links
+    EA->>MCPMAIL: outlook_extract_links(filter:"pdf")
+    MCPMAIL-->>EA: PDF link: "https://imss.gov.mx/download/cert123.pdf"
+
+    EA-->>MA: Email received in Outlook with PDF link
+    REV->>MA: Post-step: Link valid?
+    MA->>MA: Checkpoint: EMAIL_RECEIVED
+
+    %% Step 5: PDF Download
+    MA->>EA: Download PDF from link
+    EA->>MCPMAIL: pdf_download_from_link("https://imss.gov.mx/download/cert123.pdf")
+    MCPMAIL-->>EA: PDF downloaded: /tmp/cert123.pdf
+    EA->>MCPMAIL: pdf_validate_format(/tmp/cert123.pdf)
+    MCPMAIL-->>EA: PDF validation: OK
+
+    EA-->>MA: PDF downloaded and validated
+    REV->>MA: Post-step: PDF complete?
+    MA->>MA: Checkpoint: PDF_DOWNLOADED
+
+    %% Step 6: Database Update
+    MA->>DBA: Store PDF and update records
+    DBA->>DB: db_store_pdf(file_path:"/tmp/cert123.pdf", metadata)
+    DB-->>DBA: PDF stored with ID: PDF_001
+    DBA->>DB: db_update_record(request_id, status:"completed", pdf_id:"PDF_001")
+    DB-->>DBA: Record updated
+    DBA->>DB: db_log_activity("automation_complete", details)
+
+    DBA-->>MA: Database updated successfully
+    REV->>MA: Post-step: All data persisted?
+    MA->>MA: Checkpoint: DB_UPDATED
+
+    %% Workflow Completion
+    MA->>MA: Mark workflow complete
+    MA->>AISA: Report task completion (A2A)
+    REV->>MA: Final validation complete
+    MA->>IL: Send completion notification
+
+    %% Error Handling Alternative
+    Note over MA: If any step fails:
+    MA->>MA: Restore from last checkpoint
+    MA->>MA: Retry failed operation (max 3 attempts)
+    alt Retry successful
+        MA->>MA: Continue workflow
+    else Max retries exceeded
+        MA->>IL: Report error with details
+        MA->>AISA: Report failure (A2A)
+        MA->>DBA: Log failure for analysis
+    end

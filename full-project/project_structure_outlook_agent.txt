@@ -1,0 +1,47 @@
+
+outlook-mobile-agent/
+├── backend/
+│   ├── main.py                       # FastAPI app: start flow, status, logs, accounts
+│   ├── models.py                     # Pydantic models (CURPRequest, StartRequest, Status)
+│   ├── db.py                         # SQLite init + CRUD for outlook_accounts
+│   ├── settings.py                   # App settings/env
+│   └── logging_middleware.py         # Request/response logging (optional)
+│
+├── agent/
+│   ├── graph.py                      # LangGraph definition (nodes, edges, retries)
+│   ├── state.py                      # Agent state dataclasses
+│   ├── runners.py                    # Run helper to execute a single flow
+│   └── policies.py                   # Retry/backoff/timeouts
+│
+├── tools/
+│   ├── mobile_ui.py                  # Generic UI tools (find/click/type/select/wait)
+│   ├── gestures.py                   # Long-press, swipe, tap, keycodes
+│   ├── auth_wait.py                  # Authentication progress wait helper
+│   ├── post_auth.py                  # Fast-path navigator to inbox
+│   ├── selectors.py                  # Outlook selectors (reusable schema)
+│   └── utils.py                      # ADB fallbacks, formatting, validation
+│
+├── drivers/
+│   ├── appium_client.py              # Appium session lifecycle + capabilities
+│   └── capabilities.py               # UiAutomator2 Options builder
+│
+├── data/
+│   ├── constants.py                  # FIRST_NAMES, LAST_NAMES, MONTHS, REAL_CURP_IDS
+│   └── samples.json                  # Optional sample payloads
+│
+├── tests/
+│   ├── e2e_outlook_creation.py       # End-to-end happy path test
+│   ├── test_year_edge_case.py        # Year field backspace strategy test
+│   ├── test_captcha_long_press.py    # CAPTCHA 15s hold test
+│   └── test_post_auth_fast_path.py   # Post-auth navigation test
+│
+├── scripts/
+│   ├── run_local.sh                  # Start backend + device prechecks
+│   └── init_db.py                    # Initialize SQLite schema
+│
+├── diagrams/
+│   ├── outlook_agent_architecture.mermaid
+│   └── outlook_agent_sequence.mermaid
+│
+├── requirements.txt
+└── README.md
